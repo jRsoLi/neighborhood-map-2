@@ -55,3 +55,44 @@ viewModel.markers = ko.computed(function() {
 
       };
       ko.applyBindings(new viewModel());
+
+
+
+
+          search: function(value) {
+              viewModel.sights.removeAll();
+
+              if (value == '') return;
+
+              for (var sight in sights) {
+                if (sights[sight].title.toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+                  viewModel.sights.push(sights[sight]);
+                }
+              }
+            }
+
+
+              viewModel.query.subscribe(viewModel.search);
+
+
+
+              /*
+                var viewModel = {
+                  query: ko.observable(''),
+
+                };
+
+                viewModel.filteredMarkers = ko.computed(function() {
+                  var search = this.query().toLowerCase();
+                  return ko.utils.arrayFilter(sights.markers(), function(marker) {
+                    if (marker.title.toLowerCase().indexOf(search) >= 0) {
+                        return marker.setVisible(true);
+                      } else {
+                        return marker.setVisible(false);
+                      }
+                  });
+                }, viewModel);
+
+
+                ko.applyBindings(viewModel);
+              */

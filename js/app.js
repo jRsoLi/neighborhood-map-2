@@ -10,9 +10,9 @@ var sights = [
     lng: 9.9841274,
     },
     {
-    title: "St. Pauli Landungsbrücken",
-    lat: 53.545675,
-    lng: 9.968480,
+    title: "Fischmarkt",
+    lat: 53.5451634,
+    lng: 9.9532352,
     },
     {
     title: "Planten un Blomen",
@@ -67,13 +67,36 @@ function setMarkers() {
     });
   }
 
+
   //when marker is clicked get and show title and other information, when marker is closed discard information
   function populateInfoWindow(marker, infowindow) {
     //check that window is not already open
     if (infowindow.marker != marker) {
       infowindow.marker = marker;
-      infowindow.setContent('<div>' + marker.title + '</div>');
+
+      var description = "description";
+      var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
+                  '&format=json&callback=wikiCallback';
+
+      $.ajax({
+        url:wikiUrl,
+        dataType: "jsonp",
+        async: false,
+        // jsonp: "callback",
+        success: function( response ) {
+          console.log(response)
+          description = response[2][0];
+          console.log(description)
+          infowindow.setContent('<div>' + '<h3>' + marker.title + '</h3>'
+                                +'<p>' + description + '</p>' + '</div>');
+              }
+      });
+      //console.log(description);
+
+    //  infowindow.setContent('<div>' + '<h3>' + marker.title + '</h3>'
+    //                        +'<p>' + "asdf2" + '</p>' + '</div>');
       infowindow.open(map, marker);
+
       //clear content when marker is closed
       infowindow.addListener('closeClick', function() {
         infowindow.marker = null;
@@ -81,21 +104,35 @@ function setMarkers() {
     }
   }
 
-  var viewModel = {
-    query: ko.observable(''),
-  };
 
-  viewModel.markers = ko.computed(function() {
-    var search = this.query().toLowerCase();
-    return ko.utils.arrayFilter(sights.markers(), function(marker) {
-      if (marker.title.toLowerCase().indexOf(search) >= 0) {
-          return marker.setVisible(true);
-        } else {
-          return marker.setVisible(false);
-        }
-    });
-  }, viewModel);
+//viewmodel
+$(function() {
+    var viewModel = {
+        query: ko.observable('')
+    };
 
-  ko.applyBindings(viewModel);
+    //list search filter
+    viewModel.sights = ko.dependentObservable(function() {
+        var search = this.query().toLowerCase();
+        return ko.utils.arrayFilter(sights, function(sight) {
+            return sight.title.toLowerCase().indexOf(search) >= 0;
+        });
+    }, viewModel);
+
+    //make markers visible or not
+    viewModel.filteredMarkers = ko.computed(function() {
+      var search = this.query().toLowerCase();
+      return ko.utils.arrayFilter(sights.markers(), function(marker) {
+        if (marker.title.toLowerCase().indexOf(search) >= 0) {
+            return marker.setVisible(true);
+          } else {
+            return marker.setVisible(false);
+          }
+      });
+    }, viewModel);
+
+    ko.applyBindings(viewModel);
+});
+
 
 };

@@ -9,15 +9,19 @@
   <body>
     <div id='map'></div>
     <div id='search'>
-      <input id='input' placeholder="Type here..." type="input" data-bind="textInput: query, valueUpdate: 'keydown'" autocomplete="off"></input>
-      <div id='results'>
-        <ul data-bind="foreach: sights.markers">
-                <li>
-                <p data-bind="text: title"></p>
-                <p>Description</p>
-              </li>
-        </ul>
-    </div>
+      <input id='input' placeholder="Type here..." type="search"
+        data-bind="textInput: query, valueUpdate: 'keyup'"
+        autocomplete="off"></input>
+        <div class="content">
+            <ul data-bind="template: {name:'sight', foreach:sights}">
+            </ul>
+        </div>
+
+        <script type="text/html" id="sight">
+            <li>
+                <strong data-bind="text: title"></strong>
+            </li>
+        </script>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
