@@ -1,138 +1,101 @@
-var sights = [
-    {
-    title: "Speicherstadt",
-    lat: 53.544705,
-    lng: 9.9749689,
-    },
-    {
-    title: "Elbphilharmonie",
-    lat: 53.5413306,
-    lng: 9.9841274,
-    },
-    {
-    title: "Fischmarkt",
-    lat: 53.5451634,
-    lng: 9.9532352,
-    },
-    {
-    title: "Planten un Blomen",
-    lat: 53.5495481,
-    lng: 9.9797395,
-    },
-    {
-    title: "Aussen-Alster",
-    lat: 53.5674892,
-    lng: 10.0056724,
+var Sight = function(title, lat, lng, id) {
+    var self = this;
+    this.title = title;
+    this.lat = lat;
+    this.lng = lng;
+    this.id = id;
 
-    },
-  ];
 
-var map;
+    this.infowindow = new google.maps.InfoWindow();
 
-function initMap() {
-  var mapOptions = {
-    zoom: 14,
-    center: new google.maps.LatLng(53.551086, 9.993682)
-  };
-  map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    //set default and highlight colors for map markers
+    var defaultIcon = makeMarkerIcon('225FC1');
+    var highlightedIcon = makeMarkerIcon('FC0505');
 
-  setMarkers()
-
-};
-
-function setMarkers() {
-  sights.markers = ko.observableArray([]);
-  infoWindow = new google.maps.InfoWindow();
-
-  //define marker information
-  var Marker = function(sight) {
-    var marker = new google.maps.Marker({
-      position: new google.maps.LatLng(sight.lat, sight.lng),
-      title: sight.title,
-      animation: google.maps.Animation.DROP,
-      map: map
+    //define marker
+    this.marker = new google.maps.Marker({
+        position: new google.maps.LatLng(self.lat, self.lng),
+        map: map,
+        title: self.title,
+        animation: google.maps.Animation.DROP,
+        icon: defaultIcon
     });
-    return marker;
-  }
 
-  //create all Markers and push into Array and create on click events for each marker
-  for (var i = 0; i < sights.length; i++) {
-    //marker = ko.observable(new Marker(sights[i]));
-    var marker = new Marker(sights[i]);
-    sights.markers.push(marker);
+    // opens and populates info window for marker
+    this.openInfowindow = function() {
+        for (var i = 0; i < sightsModel.sights.length; i++) {
+            sightsModel.sights[i].infowindow.close();
+        }
+        map.panTo(self.marker.getPosition())
+        self.marker.setAnimation(google.maps.Animation.DROP);
 
-    //on click events
-    marker.addListener('click', function() {
-      populateInfoWindow(this, infoWindow)
-    });
-  }
+        //get wikipedia description information
+        var description = "description";
+        var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + self.marker.title +
+            '&format=json&callback=wikiCallback';
 
+        $.ajax({
+            url: wikiUrl,
+            dataType: "jsonp",
+            async: false,
+            // jsonp: "callback",
+            success: function(response) {
 
-  //when marker is clicked get and show title and other information, when marker is closed discard information
-  function populateInfoWindow(marker, infowindow) {
-    //check that window is not already open
-    if (infowindow.marker != marker) {
-      infowindow.marker = marker;
-
-      var description = "description";
-      var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + marker.title +
-                  '&format=json&callback=wikiCallback';
-
-      $.ajax({
-        url:wikiUrl,
-        dataType: "jsonp",
-        async: false,
-        // jsonp: "callback",
-        success: function( response ) {
-          console.log(response)
-          description = response[2][0];
-          console.log(description)
-          infowindow.setContent('<div>' + '<h3>' + marker.title + '</h3>'
-                                +'<p>' + description + '</p>' + '</div>');
-              }
-      });
-      //console.log(description);
-
-    //  infowindow.setContent('<div>' + '<h3>' + marker.title + '</h3>'
-    //                        +'<p>' + "asdf2" + '</p>' + '</div>');
-      infowindow.open(map, marker);
-
-      //clear content when marker is closed
-      infowindow.addListener('closeClick', function() {
-        infowindow.marker = null;
-      });
-    }
-  }
-
-
-//viewmodel
-$(function() {
-    var viewModel = {
-        query: ko.observable('')
+                description = response[2][0];
+                self.infowindow.setContent('<div>' + '<h3>' + self.marker.title + '</h3>' +
+                    '<p>' + description + '</p>' + '</div>');
+            }
+        });
+        self.infowindow.open(map, self.marker);
     };
 
-    //list search filter
-    viewModel.sights = ko.dependentObservable(function() {
-        var search = this.query().toLowerCase();
-        return ko.utils.arrayFilter(sights, function(sight) {
-            return sight.title.toLowerCase().indexOf(search) >= 0;
-        });
-    }, viewModel);
+    //creates the marker with specific style
+    function makeMarkerIcon(markerColor) {
+        var markerImage = new google.maps.MarkerImage(
+            'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|' + markerColor +
+            '|40|_|%E2%80%A2',
+            new google.maps.Size(21, 34),
+            new google.maps.Point(0, 0),
+            new google.maps.Point(10, 34),
+            new google.maps.Size(21, 34));
+        return markerImage;
+    }
 
-    //make markers visible or not
-    viewModel.filteredMarkers = ko.computed(function() {
-      var search = this.query().toLowerCase();
-      return ko.utils.arrayFilter(sights.markers(), function(marker) {
-        if (marker.title.toLowerCase().indexOf(search) >= 0) {
-            return marker.setVisible(true);
-          } else {
-            return marker.setVisible(false);
-          }
-      });
-    }, viewModel);
+    //highlight selected marker
+    this.marker.addListener('mouseover', function() {
+        this.setIcon(highlightedIcon);
+    });
 
-    ko.applyBindings(viewModel);
-});
+    //de-highlight selected marker
+    this.marker.addListener('mouseout', function() {
+        this.setIcon(defaultIcon);
+    });
 
-
+    //listener to open info window on click
+    this.addListener = google.maps.event.addListener(self.marker, 'click', (this.openInfowindow));
 };
+
+//all sights used
+var sightsModel = {
+
+    sights: [
+        new Sight('Speicherstadt', 53.544705, 9.9749689, '1'),
+        new Sight('Elbphilharmonie', 53.5413306, 9.9841274, '2'),
+        new Sight('Fischmarkt', 53.5451634, 9.9532352, '3'),
+        new Sight('Planten un Blomen', 53.5495481, 9.9797395, '4'),
+        new Sight('Aussen-Alster', 53.5674892, 10.0056724, '5')
+    ],
+    query: ko.observable(''),
+};
+
+
+// Search function
+sightsModel.search = ko.dependentObservable(function() {
+    var self = this;
+    var search = this.query().toLowerCase();
+    return ko.utils.arrayFilter(self.sights, function(sight) {
+        return sight.title.toLowerCase().indexOf(search) >= 0;
+    });
+}, sightsModel);
+
+ko.applyBindings(sightsModel);
