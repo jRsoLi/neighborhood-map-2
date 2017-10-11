@@ -6,10 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Neighborhood Map Project</title>
     <link rel="stylesheet" href="css/main.css">
-
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAPOEoD616O4ed4RRpt2BmybNMT7-TQLeg" onerror="googleError()"></script>
 </head>
 
 <body>
@@ -24,20 +20,9 @@
         <li id="sight-item" data-bind="text: title, click: openInfowindow"></li>
     </script>
 
-    <script>
-        var map;
-
-        function initialize() {
-            var mapOptions = {
-                zoom: 14,
-                center: new google.maps.LatLng(53.550022, 9.98556),
-                disableDefaultUI: true
-            };
-            map = new google.maps.Map(document.getElementById('map-canvas'),
-                mapOptions);
-        }
-        initialize();
-    </script>
+    <script async defer onerror="gError()" type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAPOEoD616O4ed4RRpt2BmybNMT7-TQLeg&callback=initMap"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="js/app.min.js"></script>
 </body>
 
