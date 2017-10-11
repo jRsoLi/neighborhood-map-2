@@ -26,7 +26,7 @@ var Sight = function(title, lat, lng, id) {
         for (var i = 0; i < sightsModel.sights.length; i++) {
             sightsModel.sights[i].infowindow.close();
         }
-        map.panTo(self.marker.getPosition())
+        map.panTo(self.marker.getPosition());
         self.marker.setAnimation(google.maps.Animation.DROP);
 
         //get wikipedia description information
