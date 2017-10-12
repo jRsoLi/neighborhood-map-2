@@ -129,7 +129,6 @@ function initMap() {
     ko.applyBindings(sightsModel);
 }
 
-initMap();
 
 //Error handling for Google Maps
 function gError() {
